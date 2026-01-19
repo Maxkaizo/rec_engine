@@ -210,3 +210,6 @@ __marimo__/
 
 __pycache__
 .ipynb_checkpoints
+
+
+models/
