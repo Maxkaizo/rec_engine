@@ -2,8 +2,14 @@
 
 ## Data & Features
 
-### 1. Dropping `Timestamp` from Ratings
-**Decision**: We are excluding the `Timestamp` column from the input data for both the SVD and ALS models in the initial MVP.
+### 1. Data Splitting & Validation
+**Decision**: We implement a **Train / Validation / Test** split (60% / 20% / 20%) for the experimentation phase.
+
+**Context**: 
+- **Train (60%)**: Used to learn model parameters.
+- **Validation (20%)**: Used for **Hyperparameter Optimization** (tuning factors, regularization, learning rates).
+- **Test (20%)**: Used for final evaluation of the optimized models.
+- **Production**: After selecting best parameters, we retrain on 100% of the data.
 
 **Context**: 
 - The chosen algorithms (Matrix Factorization via SVD and ALS) primarily rely on user-item interactions (ratings or confidence) and do not natively incorporate temporal dynamics in their standard implementations.
@@ -20,8 +26,8 @@
 **Context**:
 - **Why TF-IDF?**: A simple multi-hot encoding treats all genres equally. TF-IDF weights rare genres (e.g., "Film-Noir", "Documentary") higher than common genres (e.g., "Drama", "Comedy"), providing a richer signal for similarity.
 - **Implementation**: We treat the pipe-separated genre string (e.g., `"Action|Sci-Fi"`) as a "document".
-- **Usage**: This allows us to find "Similar Items" based purely on content, which is crucial for:
-    1.  **Cold Start**: Recommending similar movies to a user's initial selection before we have collaborative history.
-    2.  **Hybridization**: Potential to mix content-based scores with ALS/SVD scores.
+- **Usage**: This is a critical component for our **Hybrid Candidate Generation** strategy:
+    1.  **Candidate Expansion**: We will not rely solely on Collaborative Filtering (ALS). We will also fetch movies similar to the user's high-rated items using TF-IDF.
+    2.  **Information Preservation**: This ensures we don't lose signal from explicit genre preferences, allowing the system to recommend relevant items even if the collaborative signal is weak.
 
 **Reference**: See `tech_note_fe_genres.MD` for the detailed technical evaluation of Multi-Hot vs TF-IDF.
