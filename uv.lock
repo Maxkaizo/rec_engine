@@ -1011,6 +1011,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "scikit-learn" },
     { name = "scikit-surprise" },
+    { name = "scipy" },
     { name = "seaborn" },
     { name = "uvicorn" },
 ]
@@ -1030,6 +1031,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
     { name = "scikit-surprise", specifier = ">=1.1.4" },
+    { name = "scipy", specifier = ">=1.17.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "uvicorn", specifier = ">=0.40.0" },
 ]

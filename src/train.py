@@ -105,12 +105,26 @@ def main():
     with open(os.path.join(MODELS_DIR, "svd_model.pkl"), "wb") as f:
         pickle.dump(svd_model, f)
 
+    # --- Compute Popular Movies (Cold Start) ---
+    print("Computing Popular Movies (Cold Start)...")
+    # 1. Calculate metrics
+    movie_stats = ratings.groupby('MovieID').agg({'Rating': ['count', 'mean']})
+    movie_stats.columns = ['count', 'mean']
+    
+    # 2. Filter: High popularity (e.g., > 100 ratings)
+    # 1M dataset is dense, 100 is a safe lower bound for "popular"
+    qualified = movie_stats[movie_stats['count'] >= 100]
+    
+    # 3. Sort by Rating (Best Rated among Popular)
+    top_50 = qualified.sort_values('mean', ascending=False).head(50).index.tolist()
+
     # Content Artifacts
     content_artifacts = {
         "tfidf_matrix": tfidf_matrix,
         "tfidf_vectorizer": tfidf,
         "cosine_sim_matrix": cosine_sim,
-        "movies_df": movies[['MovieID', 'Title', 'Genres']]
+        "movies_df": movies[['MovieID', 'Title', 'Genres']],
+        "popular_movies": top_50  # NEW: Dynamic Cold Start list
     }
     with open(os.path.join(MODELS_DIR, "content_artifacts.pkl"), "wb") as f:
         pickle.dump(content_artifacts, f)
