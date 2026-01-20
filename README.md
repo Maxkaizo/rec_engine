@@ -24,6 +24,8 @@ rec_engine/
 ├── data/                   # Dataset directory (MovieLens 1M)
 ├── deployment/             # Kubernetes manifests (Deployment, Service, HPA)
 ├── docs/                   # Documentation and guides
+│   ├── technical_rationale.md # Algorithm and library justifications
+│   └── kubernetes_guide.md    # K8s deployment instructions
 ├── models/                 # Saved model artifacts (.pkl)
 ├── notebooks/              # Jupyter notebooks (EDA and Training)
 ├── src/                    # Source code
@@ -78,6 +80,9 @@ We conducted an extensive analysis in `notebooks/01_EDA.ipynb`, covering:
 *   **Feasibility Check**: Confirmed >93% of users have enough high-rated (4+) movies to support content-based candidate generation.
 
 ## 5. Model Training & Strategy
+
+> [!NOTE]
+> For a detailed explanation of why we chose specific algorithms (ALS, SVD) and libraries (implicit, scikit-surprise), please refer to the **[Technical Rationale Guide](docs/technical_rationale.md)**.
 
 The training process (`src/train.py` / `notebooks/02_Model_Training.ipynb`) follows a rigorous **3-way split** strategy:
 
