@@ -33,10 +33,11 @@ class RecommenderSystem:
             
         print("Models loaded successfully.")
 
-    def get_recommendations(self, user_id, k=10):
+    def get_recommendations(self, user_id, k=10, enrich=True):
         """
         Public method to get hybrid recommendations for a user.
-        Returns a list of dicts: {'id': int, 'title': str, 'genres': str}
+        If enrich=True, returns a list of dicts: {'id': int, 'title': str, 'genres': str}
+        If enrich=False, returns a list of MovieIDs (int).
         """
         # 1. Identify User State
         user_known = user_id in self.als_artifacts['user_map'].values()
@@ -51,8 +52,11 @@ class RecommenderSystem:
             # 3. Ranking using SVD
             rec_ids = self._rank_candidates(user_id, candidates, k)
         
-        # 4. Enrich with Title/Metadata
-        return self._enrich_recommendations(rec_ids)
+        # 4. Enrich with Title/Metadata if requested
+        if enrich:
+            return self._enrich_recommendations(rec_ids)
+        
+        return rec_ids
 
     def _enrich_recommendations(self, movie_ids):
         """
@@ -145,8 +149,4 @@ class RecommenderSystem:
         # Fallback if artifact is missing (safety net)
         return [2858, 260, 1196, 1210, 480, 2028, 589, 2571, 1270, 593]
 
-if __name__ == "__main__":
-    # Quick Test
-    rec_sys = RecommenderSystem()
-    print("Test Recommendation for User 1:")
-    print(rec_sys.get_recommendations(user_id=1, k=5))
+

@@ -105,10 +105,34 @@ This will generate the following artifacts in `models/`:
 *   `svd_model.pkl`: SVD ranking model.
 *   `content_artifacts.pkl`: TF-IDF matrix and vectorizer.
 
-### Prototyping
-Explore `notebooks/02_Model_Training.ipynb` to see the step-by-step hyperparameter tuning and evaluation logic.
+### Automated API Testing
+If the API is running, you can verify all endpoints using the integration script:
+```bash
+uv sync  # Install httpx if not present
+.venv/bin/python3 src/test_api.py
+```
 
-## 7. Next Steps (In Progress)
-*   [ ] Implementation of `src/recommend.py` for the inference class.
-*   [ ] Creation of FastAPI service (`src/main.py`).
-*   [ ] Containerization (Docker).
+## 7. Containerization (Docker)
+
+The application is fully containerized for easy deployment.
+
+### Build the Image
+```bash
+docker build -t rec-engine .
+```
+
+### Run the Container
+```bash
+docker run -p 8000:8000 rec-engine
+```
+The API will be available at `http://localhost:8000`.
+
+## 8. Final Review Checklist (Rubric Compliance)
+*   [x] **Problem Description**: Detailed in Section 1.
+*   [x] **EDA**: Extensive analysis in `01_EDA.ipynb`.
+*   [x] **Model Training**: Multiple models (ALS, SVD) tuned in `02_Model_Training.ipynb`.
+*   [x] **Export to Script**: Logic formalized in `src/train.py`.
+*   [x] **Reproducibility**: `uv` environment and clear data instructions provided.
+*   [x] **Model Deployment**: FastAPI service in `src/main.py`.
+*   [x] **Dependency Management**: `pyproject.toml` and `uv.lock`.
+*   [x] **Containerization**: `Dockerfile` provided and documented.
