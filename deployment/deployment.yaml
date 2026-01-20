@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rec-engine
+  labels:
+    app: rec-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rec-engine
+  template:
+    metadata:
+      labels:
+        app: rec-engine
+    spec:
+      containers:
+      - name: rec-engine
+        image: rec-engine:latest
+        imagePullPolicy: IfNotPresent # Needed for local testing (Minikube/Kind)
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30 # Time for models to load
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10

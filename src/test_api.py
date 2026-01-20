@@ -1,13 +1,12 @@
 
 import httpx
 import json
+import argparse
 
-BASE_URL = "http://localhost:8000"
-
-def test_api():
-    print("=== FastAPI Service Integration Testing ===")
+def test_api(base_url):
+    print(f"=== FastAPI Service Integration Testing ({base_url}) ===")
     
-    with httpx.Client(base_url=BASE_URL, timeout=10.0) as client:
+    with httpx.Client(base_url=base_url, timeout=10.0) as client:
         # 1. Health Check
         print("\n[Testing GET /]")
         try:
@@ -15,7 +14,7 @@ def test_api():
             print(f"Status: {r.status_code}")
             print(f"Response: {r.json()}")
         except Exception as e:
-            print(f"Could not connect to API: {e}")
+            print(f"Could not connect to API at {base_url}: {e}")
             return
 
         # 2. Popular Movies (Cold Start)
@@ -47,4 +46,16 @@ def test_api():
         print(f"Status: {r.status_code} (Expected 404)")
 
 if __name__ == "__main__":
-    test_api()
+    parser = argparse.ArgumentParser(description="Test Recommender API")
+    parser.add_argument(
+        "--platform", 
+        choices=["docker", "k8s"], 
+        default="docker",
+        help="Target platform (docker:8000, k8s:8080)"
+    )
+    args = parser.parse_args()
+    
+    port = 8000 if args.platform == "docker" else 8080
+    url = f"http://localhost:{port}"
+    
+    test_api(url)

@@ -17,8 +17,6 @@ downloads/
 *.zip
 *.log
 .python-version
-uv.lock
-pyproject.toml
 Dockerfile
 .dockerignore
 tests/

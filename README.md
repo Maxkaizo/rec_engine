@@ -22,15 +22,19 @@ We implemented a **Two-Stage Pipeline** to balance efficiency and accuracy:
 ```
 rec_engine/
 ├── data/                   # Dataset directory (MovieLens 1M)
-├── docs/                   # Documentation and design notes
+├── deployment/             # Kubernetes manifests (Deployment, Service, HPA)
+├── docs/                   # Documentation and guides
 ├── models/                 # Saved model artifacts (.pkl)
-├── notebooks/              # Jupyter notebooks for EDA and Prototyping
-│   ├── 01_EDA.ipynb        # Exploratory Data Analysis
-│   └── 02_Model_Training.ipynb # Model tuning and pipeline verification
-├── src/                    # Source code for production
-│   └── train.py            # Production training script
-├── pyproject.toml          # Dependencies (managed by uv)
-└── README.md               # Project documentation
+├── notebooks/              # Jupyter notebooks (EDA and Training)
+├── src/                    # Source code
+│   ├── main.py             # FastAPI service
+│   ├── recommend.py        # Recommender system logic
+│   ├── train.py            # Model training script
+│   ├── test_api.py         # API integration test
+│   └── test_recommend.py   # Modular inference test
+├── Dockerfile              # Container definition
+├── pyproject.toml          # Project dependencies
+└── README.md               # Main documentation
 ```
 
 ## 3. Setup and Installation
@@ -41,11 +45,14 @@ This project uses **uv** for fast and reliable dependency management.
 *   Linux/macOS (or WSL on Windows)
 *   Python 3.12+
 *   `uv` installed (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+*   **For Kubernetes (Optional)**:
+    *   `kind`: [Installation Guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+    *   `kubectl`: [Installation Guide](https://kubernetes.io/docs/tasks/tools/)
 
 ### Installation Steps
 1.  **Clone the repository**:
     ```bash
-    git clone <repo-url>
+    git clone https://github.com/Maxkaizo/rec_engine.git
     cd rec_engine
     ```
 
@@ -60,8 +67,7 @@ This project uses **uv** for fast and reliable dependency management.
     ```
 
 ### Data Preparation
-1.  Download the **MovieLens 1M** dataset from [GroupLens](https://grouplens.org/datasets/movielens/1m/).
-2.  Extract the contents (`ratings.dat`, `movies.dat`, `users.dat`) into `rec_engine/data/ml-1m/`.
+The **MovieLens 1M** dataset is already included in the repository under `data/ml-1m/`. No additional download is required to run the training or inference scripts.
 
 ## 4. Exploratory Data Analysis (EDA)
 
@@ -91,43 +97,55 @@ The training process (`src/train.py` / `notebooks/02_Model_Training.ipynb`) foll
     *   **Precision@10: 8.64%**
     *   _Interpretation_: On average, nearly 1 in 10 recommended movies is a "hit" (rated 4+ stars) for the user, a solid baseline for offline evaluation.
 
-## 6. Usage
+## 6. Model Usage (Training)
 
-### automated Training
 To retrain the models on the full dataset using the optimal hyperparameters:
 
 ```bash
 python src/train.py
 ```
 
-This will generate the following artifacts in `models/`:
-*   `als_artifacts.pkl`: ALS model and User-Item matrix.
-*   `svd_model.pkl`: SVD ranking model.
-*   `content_artifacts.pkl`: TF-IDF matrix and vectorizer.
+## 7. Deployment
 
-### Automated API Testing
-If the API is running, you can verify all endpoints using the integration script:
+### Docker
+The application is fully containerized.
+1.  **Build**: `docker build -t rec-engine .`
+2.  **Run**: `docker run -d -p 8000:8000 rec-engine`
+
+### Kubernetes
+For container orchestration, high availability, and auto-scaling, see the [Kubernetes Deployment Guide](docs/kubernetes_guide.md).
+
+**Quick Automated kubernetes' Setup**:
 ```bash
-uv sync  # Install httpx if not present
-.venv/bin/python3 src/test_api.py
+./scripts/setup_k8s.sh
 ```
 
-## 7. Containerization (Docker)
+## 8. Verification and Testing
 
-The application is fully containerized for easy deployment.
+We provide multiple ways to verify the system depending on how you've deployed it.
 
-### Build the Image
+### 1. Logic Verification (No Server)
+To test the core recommendation engine and pipeline logic without starting a web server:
 ```bash
-docker build -t rec-engine .
+python src/test_recommend.py
 ```
 
-### Run the Container
-```bash
-docker run -p 8000:8000 rec-engine
-```
-The API will be available at `http://localhost:8000`.
+### 2. API Verification (Integration)
+The API must be running for these tests. Choose the scenario that matches your deployment:
 
-## 8. Final Review Checklist (Rubric Compliance)
+| Scenario | Start API Command | Test Command |
+| :--- | :--- | :--- |
+| **Local Python** | `python src/main.py` | `python src/test_api.py --platform docker` |
+| **Docker** | `docker run -d -p 8000:8000 rec-engine` | `python src/test_api.py --platform docker` |
+| **Kubernetes** | `./scripts/setup_k8s.sh` | `python src/test_api.py --platform k8s` |
+
+---
+**Note for Kubernetes**: When testing on K8s, the setup script automates the deployment. However, you must ensure the **port-forward** command is running in a separate terminal before executing the test script:
+```bash
+kubectl port-forward service/rec-engine-service 8080:80
+```
+
+## 9. Final Review Checklist (Rubric Compliance)
 *   [x] **Problem Description**: Detailed in Section 1.
 *   [x] **EDA**: Extensive analysis in `01_EDA.ipynb`.
 *   [x] **Model Training**: Multiple models (ALS, SVD) tuned in `02_Model_Training.ipynb`.
@@ -136,3 +154,4 @@ The API will be available at `http://localhost:8000`.
 *   [x] **Model Deployment**: FastAPI service in `src/main.py`.
 *   [x] **Dependency Management**: `pyproject.toml` and `uv.lock`.
 *   [x] **Containerization**: `Dockerfile` provided and documented.
+*   [x] **Cloud/Kubernetes Deployment**: Manifiestos (Deployment, Service, HPA) and automation script `scripts/setup_k8s.sh` provided and verified.
